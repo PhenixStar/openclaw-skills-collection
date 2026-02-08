@@ -14,6 +14,15 @@ OpenClaw Doctor Pro is an advanced troubleshooting suite for [OpenClaw](https://
 - 📚 Comprehensive reference documentation
 - 🎯 Interactive setup wizard for first-time users
 
+## What's New in v1.1.0
+
+- **🤝 Complementary Skills** - Discover skills that work together (10 skill relationships)
+- **🔔 Diagnostic Hooks** - GitHub/Slack/Discord integration for error notifications (9 hook configs)
+- **📈 Recovery Tracking** - Track fix execution history and success rates
+- **🎯 Smart Scoring** - Enhanced recommendations with complementary skill bonus scoring
+- **🎨 Rich Display** - Improved CLI panels and formatting for suggestions
+- **📦 7 New Modules** - complementary_skills, diagnostic_integrations, recovery_integrations, notification_hooks, recommendation_scoring, fix_execution_tracker, error_fixer_display
+
 ## Quick Start
 
 ### Installation
@@ -44,315 +53,148 @@ python3 scripts/setup-wizard.py --check-only
 
 ## Tools Overview
 
-### 1. Enhanced Doctor
-Extended diagnostic checks beyond built-in `openclaw doctor`.
+### Enhanced Doctor
+`python3 scripts/enhanced-doctor.py [--deep] [--json]` - Extended diagnostics
 
+### Error Fixer (v1.1.0 features)
 ```bash
-# Full diagnostics
-python3 scripts/enhanced-doctor.py
-
-# Deep scan with log analysis
-python3 scripts/enhanced-doctor.py --deep
-
-# JSON output
-python3 scripts/enhanced-doctor.py --json
+python3 scripts/error-fixer.py --error 401          # Diagnose (triggers hooks)
+python3 scripts/error-fixer.py --auto-fix           # Auto-fix safe issues (tracks history)
+python3 scripts/error-fixer.py --show-history       # View fix execution history
+python3 scripts/error-fixer.py --test-hooks         # Test GitHub/Slack/Discord hooks
 ```
 
-### 2. Error Fixer
-Diagnose and auto-fix OpenClaw errors.
-
+### Skill Recommender (v1.1.0 features)
 ```bash
-# Diagnose by error code
-python3 scripts/error-fixer.py --error 401
-
-# Analyze log file
-python3 scripts/error-fixer.py --input /path/to/log
-
-# Auto-fix safe issues
-python3 scripts/error-fixer.py --error EADDRINUSE --auto-fix
-
-# List errors by category
-python3 scripts/error-fixer.py --category authentication
+python3 scripts/skill-recommender.py --auto-detect              # Auto-detect (complementary metadata)
+python3 scripts/skill-recommender.py --complementary-for SKILL  # View complementary skills
+python3 scripts/skill-recommender.py --channel whatsapp         # Channel recommendations
 ```
 
-### 3. Skill Recommender
-Smart ClawHub skill recommendations.
+### Self-Updater
+`python3 scripts/self-updater.py [--check] [--update] [--skills-only]` - Keep caches current
 
-```bash
-# Recommend for channel
-python3 scripts/skill-recommender.py --channel whatsapp --top 5
+### Setup Wizard
+`python3 scripts/setup-wizard.py [--check-only]` - Interactive first-time setup
 
-# Recommend by use case
-python3 scripts/skill-recommender.py --use-case "image generation"
+## Documentation
 
-# Auto-detect from config
-python3 scripts/skill-recommender.py --auto-detect
+**References:** `references/` contains 12 comprehensive guides (error-catalog, auth-errors, rate-limiting, gateway, channels, sandbox, config, installation, diagnostic-commands, clawhub-integration, auto-fix-capabilities, troubleshooting-workflow)
 
-# Check for updates
-python3 scripts/skill-recommender.py --check-updates
-```
+**Templates:** `templates/` contains error-report and recommendation-report formats
 
-### 4. Self-Updater
-Keep references and caches current.
-
-```bash
-# Check what's outdated
-python3 scripts/self-updater.py --check
-
-# Update everything
-python3 scripts/self-updater.py --update
-
-# Update only skill cache
-python3 scripts/self-updater.py --update --skills-only
-```
-
-### 5. Setup Wizard
-Interactive first-time setup.
-
-```bash
-# Interactive setup
-python3 scripts/setup-wizard.py
-
-# Check prerequisites only
-python3 scripts/setup-wizard.py --check-only
-```
-
-## Documentation Structure
-
-### Reference Documentation (`references/`)
-
-Comprehensive guides covering all aspects of OpenClaw troubleshooting:
-
-| File | Description |
-|------|-------------|
-| [error-catalog.md](references/error-catalog.md) | Master index of all error types (10 categories, 50+ errors) |
-| [authentication-errors.md](references/authentication-errors.md) | 401, API keys, tokens, env vars |
-| [rate-limiting-errors.md](references/rate-limiting-errors.md) | 429, quotas, throttling, retry strategies |
-| [gateway-errors.md](references/gateway-errors.md) | 502, port conflicts, network issues |
-| [channel-errors.md](references/channel-errors.md) | WhatsApp, Telegram, Discord, Slack, Signal |
-| [sandbox-errors.md](references/sandbox-errors.md) | Docker, containers, OOM, timeouts |
-| [configuration-errors.md](references/configuration-errors.md) | Config validation, schema, types |
-| [installation-errors.md](references/installation-errors.md) | Node.js, pnpm, PATH, dependencies |
-| [diagnostic-commands.md](references/diagnostic-commands.md) | CLI command reference |
-| [clawhub-integration.md](references/clawhub-integration.md) | Skill management, publishing |
-| [auto-fix-capabilities.md](references/auto-fix-capabilities.md) | What can be auto-fixed |
-| [troubleshooting-workflow.md](references/troubleshooting-workflow.md) | Decision trees and flows |
-
-### Templates (`templates/`)
-
-Report templates for consistent output:
-
-| File | Purpose |
-|------|---------|
-| [error-report.md](templates/error-report.md) | Error diagnostic report format |
-| [recommendation-report.md](templates/recommendation-report.md) | Skill recommendation report format |
+**Data:** `data/` contains error-patterns, skills-cache, complementary-skills (v1.1.0), integration-hooks (v1.1.0), fix-execution-history (v1.1.0)
 
 ## Error Categories
 
-OpenClaw Doctor Pro handles 10 error categories:
+10 categories: Authentication, Rate Limiting, Gateway, Channels, Sandbox, Configuration, Installation, Plugins, Skills, System
 
-1. **Authentication** - API keys, tokens, credentials
-2. **Rate Limiting** - Quotas, throttling, burst limits
-3. **Gateway** - Network, ports, connectivity
-4. **Channels** - WhatsApp, Telegram, Discord, Slack, Signal
-5. **Sandbox** - Docker, containers, execution
-6. **Configuration** - Schema, validation, types
-7. **Installation** - Dependencies, versions, PATH
-8. **Plugins** - Loading, initialization, versions
-9. **Skills** - ClawHub, execution, manifests
-10. **System** - Disk, memory, permissions
+## Auto-Fix Safety Levels
 
-## Auto-Fix Capabilities
-
-### Safety Levels
-
-- ✅ **Safe** - Fully automated, no user confirmation needed
-- ⚠️ **Moderate** - Automated with optional confirmation
-- 🔴 **Risky** - Requires explicit user confirmation
-- ❌ **Manual** - Cannot auto-fix, guidance provided
-
-### Examples
-
-**Safe Auto-Fixes:**
-- Increase sandbox timeout
-- Enable retry strategy
-- Convert config value types
-- Migrate deprecated keys
-- Refresh auth tokens
-
-**Moderate Auto-Fixes:**
-- Kill process on port (EADDRINUSE)
-- Fix workspace permissions
-- Install missing packages
-- Re-set webhooks
-
-**Risky Auto-Fixes:**
-- Regenerate gateway token
-- Start Docker daemon
-- Install Signal CLI
-- Modify firewall rules
+- ✅ **Safe** - Fully automated (timeout increase, retry enable, config type conversion)
+- ⚠️ **Moderate** - Optional confirmation (kill port process, permissions fix)
+- 🔴 **Risky** - Explicit confirmation (token regeneration, Docker start)
+- ❌ **Manual** - Guidance only
 
 See [auto-fix-capabilities.md](references/auto-fix-capabilities.md) for complete list.
 
 ## Common Workflows
 
-### Gateway Won't Start
-```bash
-# 1. Run diagnostics
-python3 scripts/enhanced-doctor.py
+**Gateway Won't Start:** `enhanced-doctor.py` → `error-fixer.py --fix-all-safe` → check port → fix EADDRINUSE
 
-# 2. Fix common issues
-python3 scripts/error-fixer.py --fix-all-safe
+**Channel Issues:** `openclaw channels status` → `error-fixer.py --category channel` → test channel → see references/channel-errors.md
 
-# 3. Check port
-lsof -i :18789
+**Rate Limits:** `openclaw quota show` → `error-fixer.py --error 429 --auto-fix` → enable fallback
 
-# 4. Fix port conflict if needed
-python3 scripts/error-fixer.py --error EADDRINUSE --auto-fix
-```
+**Find Skills:** `skill-recommender.py --auto-detect` → view complementary → install → check updates
 
-### Channel Not Working
-```bash
-# 1. Check channel status
-openclaw channels status whatsapp
-
-# 2. View channel-specific errors
-python3 scripts/error-fixer.py --category channel
-
-# 3. Test channel
-openclaw channels test whatsapp
-
-# 4. Follow channel-specific guide
-# See references/channel-errors.md
-```
-
-### API Rate Limits
-```bash
-# 1. Check quota
-openclaw quota show
-
-# 2. Enable retry strategy
-python3 scripts/error-fixer.py --error 429 --auto-fix
-
-# 3. Enable fallback provider
-openclaw config set ai.fallback.enabled true
-```
-
-### Find Relevant Skills
-```bash
-# 1. Auto-detect needs
-python3 scripts/skill-recommender.py --auto-detect
-
-# 2. Install recommended
-openclaw skills install skill-name
-
-# 3. Check updates
-python3 scripts/skill-recommender.py --check-updates
-```
+**Track Fixes (v1.1.0):** `error-fixer.py --show-history` → `--test-hooks` → auto-fix with recovery tracking
 
 ## ClawHub Integration
 
-Access to 5,700+ skills across categories:
+5,700+ skills: AI/ML, Automation, Utilities, Integrations, Communication, Data
 
-**Categories:**
-- AI & Machine Learning (image gen, embeddings, sentiment)
-- Automation (workflows, schedulers, triggers)
-- Utilities (PDF, image tools, converters)
-- Integrations (Google, GitHub, Zapier)
-- Communication (email, SMS, notifications)
-- Data (databases, analytics, visualization)
+**Popular:** image-generator-pro, pdf-toolkit, workflow-builder, google-workspace, auto-responder
 
-**Popular Skills:**
-- `image-generator-pro` - Multi-provider image generation
-- `pdf-toolkit` - Complete PDF manipulation
-- `workflow-builder` - Visual automation
-- `google-workspace` - Google integration
-- `auto-responder` - Smart responses
-
-See [clawhub-integration.md](references/clawhub-integration.md) for details.
+See [clawhub-integration.md](references/clawhub-integration.md)
 
 ## Project Structure
 
 ```
 openclaw-doctor-pro/
-├── SKILL.md                          # ClawHub manifest
-├── README.md                         # This file
+├── SKILL.md                                  # ClawHub manifest (v1.1.0)
+├── README.md                                 # This file
 ├── scripts/
-│   ├── enhanced-doctor.py           # Extended diagnostics
-│   ├── error-fixer.py               # Auto-fix errors
-│   ├── skill-recommender.py         # Skill recommendations
-│   ├── self-updater.py              # Update tool
-│   └── setup-wizard.py              # First-time setup
+│   ├── enhanced-doctor.py                   # Extended diagnostics
+│   ├── error-fixer.py                       # Auto-fix errors
+│   ├── skill-recommender.py                 # Skill recommendations
+│   ├── self-updater.py                      # Update tool
+│   └── setup-wizard.py                      # First-time setup
+├── modules/                                  # 27 Python modules (all <200 lines)
+│   ├── complementary_skills.py              # NEW: Complementary skill scoring
+│   ├── diagnostic_integrations.py           # NEW: Diagnostic hook triggers
+│   ├── recovery_integrations.py             # NEW: Fix tracking + recovery
+│   ├── notification_hooks.py                # NEW: GitHub/Slack/Discord hooks
+│   ├── recommendation_scoring.py            # NEW: Extracted scoring logic
+│   ├── fix_execution_tracker.py             # NEW: Execution metadata
+│   ├── error_fixer_display.py               # NEW: Rich display helpers
+│   ├── recommendation_engine.py             # ENHANCED: Bonus scoring
+│   ├── fix_engine.py                        # ENHANCED: Hook triggers
+│   ├── clawhub_cache.py                     # ENHANCED: Complementary metadata
+│   └── ...                                  # 17 other modules
 ├── references/
-│   ├── error-catalog.md             # Error index
-│   ├── authentication-errors.md     # Auth issues
-│   ├── rate-limiting-errors.md      # Rate limits
-│   ├── gateway-errors.md            # Gateway issues
-│   ├── channel-errors.md            # Channel issues
-│   ├── sandbox-errors.md            # Sandbox issues
-│   ├── configuration-errors.md      # Config issues
-│   ├── installation-errors.md       # Install issues
-│   ├── diagnostic-commands.md       # CLI reference
-│   ├── clawhub-integration.md       # Skill management
-│   ├── auto-fix-capabilities.md     # Fix reference
-│   └── troubleshooting-workflow.md  # Decision trees
+│   ├── error-catalog.md                     # Error index
+│   ├── authentication-errors.md             # Auth issues
+│   ├── rate-limiting-errors.md              # Rate limits
+│   ├── gateway-errors.md                    # Gateway issues
+│   ├── channel-errors.md                    # Channel issues
+│   ├── sandbox-errors.md                    # Sandbox issues
+│   ├── configuration-errors.md              # Config issues
+│   ├── installation-errors.md               # Install issues
+│   ├── diagnostic-commands.md               # CLI reference
+│   ├── clawhub-integration.md               # Skill management
+│   ├── auto-fix-capabilities.md             # Fix reference
+│   └── troubleshooting-workflow.md          # Decision trees
 ├── templates/
-│   ├── error-report.md              # Error report template
-│   └── recommendation-report.md     # Recommendation template
+│   ├── error-report.md                      # Error report template
+│   └── recommendation-report.md             # Recommendation template
 ├── data/
-│   ├── error-patterns.json          # Error definitions
-│   └── skills-cache.json            # ClawHub cache
+│   ├── error-patterns.json                  # Error definitions
+│   ├── skills-cache.json                    # ClawHub cache
+│   ├── complementary-skills.json            # NEW: 10 skill relationships
+│   ├── integration-hooks.json               # NEW: 9 hook configs
+│   └── fix-execution-history.json           # NEW: Fix tracking
 └── cache/
-    └── skill-recommendations.json   # Cached recommendations
+    └── skill-recommendations.json           # Cached recommendations
 ```
 
-## Requirements
+**Stats:** 27 Python modules, 3,567 lines total, all under 200 lines each.
 
-- Python 3.8+
-- OpenClaw installed
-- Dependencies: `click`, `rich`, `requests`, `beautifulsoup4`
+## Requirements & Installation
 
-## Installation
+**Requirements:** Python 3.8+, OpenClaw, Dependencies: click, rich, requests, beautifulsoup4
 
 ```bash
-# Clone or download
-git clone https://github.com/username/openclaw-doctor-pro.git
+git clone https://github.com/PhenixStar/openclaw-doctor-pro.git
 cd openclaw-doctor-pro
-
-# Install dependencies
 pip install click rich requests beautifulsoup4
-
-# Run setup wizard
 python3 scripts/setup-wizard.py
 ```
 
 ## Contributing
 
-Contributions welcome! Areas to improve:
-
-- Add more error patterns
-- Enhance auto-fix recipes
-- Improve skill recommendations
-- Add more platform support
-- Update documentation
+Contributions welcome: error patterns, auto-fix recipes, skill recommendations, platform support, documentation
 
 ## License
 
 MIT License - See LICENSE file for details.
 
-## Support
+## Support & Acknowledgments
 
-- GitHub Issues: https://github.com/openclaw/openclaw/issues
-- OpenClaw Docs: https://docs.openclaw.io
-- Community Discord: https://discord.gg/openclaw
+**Support:** [GitHub Issues](https://github.com/openclaw/openclaw/issues) | [Docs](https://docs.openclaw.io) | [Discord](https://discord.gg/openclaw)
 
-## Acknowledgments
-
-Built for the OpenClaw community. Special thanks to:
-- OpenClaw core team
-- ClawHub contributors
-- Community testers and feedback providers
+**Thanks:** OpenClaw core team, ClawHub contributors, community testers
 
 ---
 
-**OpenClaw Doctor Pro** - Because every gateway needs a doctor 🏥
+**OpenClaw Doctor Pro v1.1.0** - Because every gateway needs a doctor 🏥
