@@ -1,6 +1,7 @@
 """Step execution logic for the fix engine."""
 from __future__ import annotations
 
+import shlex
 from pathlib import Path
 
 from .utils import run_command, get_config, save_json, CONFIG_FILE
@@ -58,7 +59,7 @@ def _execute_command_step(step: dict, dry_run: bool, params: dict) -> tuple[bool
     if dry_run:
         return True, f"Would run: {cmd}"
 
-    returncode, stdout, stderr = run_command(cmd.split())
+    returncode, stdout, stderr = run_command(shlex.split(cmd))
     if returncode == 0:
         return True, f"Executed: {cmd}"
     else:

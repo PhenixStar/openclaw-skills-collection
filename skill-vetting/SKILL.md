@@ -1,6 +1,20 @@
 ---
 name: skill-vetting
 description: Vet ClawHub skills for security and utility before installation. Use when considering installing a ClawHub skill, evaluating third-party code, or assessing whether a skill adds value over existing tools.
+license: MIT
+version: 1.0.0
+homepage: https://github.com/PhenixStar/openclaw-skills-collection
+user-invocable: true
+disable-model-invocation: false
+auto_activate:
+  - vet skill
+  - scan skill
+  - security check skill
+  - check skill safety
+  - evaluate skill
+  - inspect skill
+  - skill security audit
+  - review skill before install
 ---
 
 # Skill Vetting

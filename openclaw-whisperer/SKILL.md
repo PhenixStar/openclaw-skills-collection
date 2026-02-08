@@ -2,7 +2,7 @@
 name: openclaw-whisperer
 description: Comprehensive diagnostic, error-fixing, and skill recommendation tool for OpenClaw
 license: MIT
-version: 1.1.0
+version: 1.2.0
 homepage: https://github.com/PhenixStar/openclaw-skills-collection
 user-invocable: true
 disable-model-invocation: false

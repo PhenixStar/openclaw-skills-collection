@@ -334,7 +334,7 @@
     {
       "id": "fix-permissions-fix",
       "title": "Fix File Permissions",
-      "safe_auto": true,
+      "safe_auto": false,
       "description": "Correct file and directory permissions",
       "steps": [
         {

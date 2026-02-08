@@ -1,6 +1,11 @@
 ---
 name: skill-hub
 description: "OpenClaw skill discovery, security vetting & install. Searches 3000+ curated skills from ClawHub registry and awesome-openclaw-skills catalog. Scores credibility, detects prompt injection & malicious patterns, manages installations. Quick-checks GitHub for new skills."
+license: MIT
+version: 1.0.0
+homepage: https://github.com/PhenixStar/openclaw-skills-collection
+user-invocable: true
+disable-model-invocation: false
 auto_activate:
   - "find skill"
   - "install skill"

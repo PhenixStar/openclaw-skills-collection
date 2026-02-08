@@ -1,6 +1,19 @@
 ---
 name: openclaw-backup
 description: Backup and restore OpenClaw data. Use when user asks to create backups, set up automatic backup schedules, restore from backup, or manage backup rotation. Handles ~/.openclaw directory archiving with proper exclusions.
+license: MIT
+version: 1.0.0
+homepage: https://github.com/PhenixStar/openclaw-skills-collection
+user-invocable: true
+disable-model-invocation: false
+auto_activate:
+  - backup openclaw
+  - restore backup
+  - create backup
+  - schedule backup
+  - backup rotation
+  - openclaw backup
+  - restore openclaw
 ---
 
 # OpenClaw Backup
