@@ -5,6 +5,8 @@ from dataclasses import dataclass
 
 from .clawhub_client import ClawHubClient, SkillInfo
 from .config_analyzer import ConfigAnalyzer
+from .complementary_skills import ComplementarySkillScorer
+from .recommendation_scoring import score_skill
 
 
 @dataclass
@@ -18,29 +20,11 @@ class Recommendation:
 class RecommendationEngine:
     """Smart skill recommendation system."""
 
-    # Channel-skill affinity mapping
-    CHANNEL_SKILLS = {
-        "whatsapp": ["whatsapp-media", "whatsapp-status", "qr-code-gen"],
-        "telegram": ["telegram-inline", "telegram-webhooks", "image-gen"],
-        "discord": ["discord-voice", "discord-slash", "game-stats"],
-        "slack": ["slack-workflows", "slack-apps", "jira-integration"],
-        "signal": ["signal-groups", "privacy-tools"],
-        "teams": ["teams-meetings", "sharepoint-integration"],
-    }
-
-    # Use case keywords
-    USE_CASE_KEYWORDS = {
-        "calendar": ["calendar", "schedule", "meeting", "event", "reminder"],
-        "image": ["image", "photo", "picture", "vision", "ocr", "generation"],
-        "code": ["code", "github", "gitlab", "deploy", "ci/cd"],
-        "automation": ["workflow", "automation", "task", "schedule"],
-        "analytics": ["analytics", "metrics", "stats", "dashboard"],
-    }
-
     def __init__(self):
         """Initialize recommendation engine."""
         self.client = ClawHubClient()
         self.analyzer = ConfigAnalyzer()
+        self.comp_scorer = ComplementarySkillScorer()
 
     def recommend(
         self,
@@ -68,13 +52,22 @@ class RecommendationEngine:
 
         query = " ".join(query_parts) if query_parts else ""
 
+        # Get installed skills for complementary scoring
+        installed = [s.slug for s in self.client.list_installed()]
+
         # Search skills
         skills = self.client.search(query, limit=top * 2)
 
         # Score and filter
         recommendations = []
         for skill in skills:
-            score, reasons = self._score_skill(skill, channel, use_case)
+            # Skip already installed skills
+            if skill.slug in installed:
+                continue
+
+            score, reasons = score_skill(
+                skill, channel, use_case, installed, self.comp_scorer
+            )
             if score > 0:
                 recommendations.append(Recommendation(
                     skill=skill,
@@ -85,71 +78,6 @@ class RecommendationEngine:
         # Sort by score descending
         recommendations.sort(key=lambda r: r.score, reverse=True)
         return recommendations[:top]
-
-    def _score_skill(
-        self,
-        skill: SkillInfo,
-        channel: str | None,
-        use_case: str | None
-    ) -> tuple[float, list[str]]:
-        """
-        Score skill relevance.
-
-        Args:
-            skill: Skill to score
-            channel: Channel filter
-            use_case: Use case filter
-
-        Returns:
-            Tuple of (score, reasons list)
-        """
-        score = 0.0
-        reasons = []
-
-        # Base score from verification and downloads
-        if skill.verified:
-            score += 2.0
-            reasons.append("Verified skill")
-
-        if skill.downloads > 1000:
-            score += 1.0
-            reasons.append("Popular (1000+ downloads)")
-        elif skill.downloads > 100:
-            score += 0.5
-
-        # Channel affinity
-        if channel:
-            channel_lower = channel.lower()
-            if channel_lower in self.CHANNEL_SKILLS:
-                if any(s in skill.slug for s in self.CHANNEL_SKILLS[channel_lower]):
-                    score += 3.0
-                    reasons.append(f"Optimized for {channel}")
-
-            if channel_lower in skill.name.lower() or channel_lower in skill.description.lower():
-                score += 2.0
-                reasons.append(f"Matches {channel} channel")
-
-        # Use case matching
-        if use_case:
-            use_case_lower = use_case.lower()
-            keywords = self.USE_CASE_KEYWORDS.get(use_case_lower, [use_case_lower])
-
-            desc_lower = skill.description.lower()
-            matches = sum(1 for kw in keywords if kw in desc_lower)
-
-            if matches > 0:
-                score += matches * 1.5
-                reasons.append(f"Matches '{use_case}' use case")
-
-        # Tag matching
-        if skill.tags:
-            if channel and channel.lower() in [t.lower() for t in skill.tags]:
-                score += 1.0
-
-            if use_case and use_case.lower() in [t.lower() for t in skill.tags]:
-                score += 1.0
-
-        return score, reasons
 
     def suggest_for_config(self) -> list[Recommendation]:
         """
@@ -192,3 +120,42 @@ class RecommendationEngine:
                 updates_available.append((installed_skill, latest))
 
         return updates_available
+
+    def suggest_complementary(
+        self,
+        top: int = 10
+    ) -> list[Recommendation]:
+        """
+        Suggest skills that complement installed skills.
+
+        Args:
+            top: Maximum results
+
+        Returns:
+            Recommended complementary skills
+        """
+        # Get installed skills
+        installed = self.client.list_installed()
+        installed_slugs = [s.slug for s in installed]
+
+        if not installed_slugs:
+            return []
+
+        # Get complementary suggestions
+        suggestions = self.comp_scorer.suggest_for_installed(
+            installed_slugs, exclude_installed=True
+        )
+
+        # Convert to Recommendation objects
+        recommendations = []
+        for skill_slug, score, comp_reasons in suggestions[:top]:
+            # Fetch skill info
+            skill_info = self.client.get_skill_info(skill_slug)
+            if skill_info:
+                recommendations.append(Recommendation(
+                    skill=skill_info,
+                    score=score,
+                    reasons=comp_reasons
+                ))
+
+        return recommendations

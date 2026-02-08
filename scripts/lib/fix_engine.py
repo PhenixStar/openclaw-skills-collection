@@ -1,10 +1,14 @@
 """Auto-fix execution engine for OpenClaw diagnostics."""
 from __future__ import annotations
 
-from dataclasses import dataclass
+import time
+from dataclasses import dataclass, field
 
 from .utils import DATA_DIR, load_json
 from .fix_step_executor import execute_step
+from .fix_execution_tracker import build_error_context, build_execution_metadata
+from .diagnostic_integrations import DiagnosticIntegrations, DiagnosticSuggestion
+from .recovery_integrations import RecoveryIntegrations, RecoverySuggestion
 
 
 @dataclass
@@ -27,6 +31,9 @@ class FixResult:
     message: str
     actions_taken: list[str]
     needs_manual: list[str]
+    diagnostic_suggestions: list[DiagnosticSuggestion] = field(default_factory=list)
+    recovery_suggestions: list[RecoverySuggestion] = field(default_factory=list)
+    execution_metadata: dict = field(default_factory=dict)
 
 
 class FixEngine:
@@ -35,6 +42,8 @@ class FixEngine:
     def __init__(self):
         """Initialize and load fix recipes from JSON."""
         self.recipes: dict[str, FixRecipe] = {}
+        self.diag_integrations = DiagnosticIntegrations()
+        self.recovery_integrations = RecoveryIntegrations()
         self._load_recipes()
 
     def _load_recipes(self) -> None:
@@ -98,8 +107,11 @@ class FixEngine:
         if params is None:
             params = {}
 
+        # Track execution timing
+        start_time = time.time()
         actions = []
         needs_manual = []
+        steps_failed = 0
 
         for i, step in enumerate(recipe.steps, start=1):
             success, message = execute_step(step, dry_run, params)
@@ -107,18 +119,27 @@ class FixEngine:
             prefix = "[DRY RUN] " if dry_run else ""
             actions.append(f"{prefix}Step {i}: {message}")
 
-            if not success and not dry_run:
-                return FixResult(
-                    recipe_id=recipe_id, success=False,
-                    message=f"Failed at step {i}: {message}",
-                    actions_taken=actions, needs_manual=needs_manual
-                )
+            if not success:
+                steps_failed += 1
+                if not dry_run:
+                    result = FixResult(
+                        recipe_id=recipe_id, success=False,
+                        message=f"Failed at step {i}: {message}",
+                        actions_taken=actions, needs_manual=needs_manual
+                    )
+                    self._track_execution(recipe_id, result, start_time, params)
+                    return result
 
-        return FixResult(
+        result = FixResult(
             recipe_id=recipe_id, success=True,
             message=f"Successfully executed {recipe.title}",
             actions_taken=actions, needs_manual=needs_manual
         )
+
+        # Track execution and check triggers
+        self._track_execution(recipe_id, result, start_time, params)
+
+        return result
 
     def list_safe_recipes(self) -> list[FixRecipe]:
         """Get all recipes with safe_auto=True."""
@@ -127,3 +148,33 @@ class FixEngine:
     def list_all_recipes(self) -> list[FixRecipe]:
         """Get all recipes."""
         return list(self.recipes.values())
+
+    def _track_execution(
+        self,
+        recipe_id: str,
+        result: FixResult,
+        start_time: float,
+        params: dict
+    ) -> None:
+        """Track execution and check integration triggers."""
+        metadata = build_execution_metadata(
+            start_time, result.actions_taken, result.needs_manual, params
+        )
+        result.execution_metadata = metadata
+
+        # Track for evolver
+        self.recovery_integrations.track_execution(
+            recipe_id, result.success, metadata
+        )
+
+        # Build context and check triggers
+        error_context = build_error_context(
+            recipe_id, result.success,
+            result.actions_taken, result.needs_manual, metadata
+        )
+        result.diagnostic_suggestions = self.diag_integrations.check_triggers(
+            error_context
+        )
+        result.recovery_suggestions = self.recovery_integrations.check_triggers(
+            error_context
+        )

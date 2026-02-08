@@ -7,6 +7,7 @@ from .utils import DATA_DIR, load_json, save_json
 
 CACHE_FILE = DATA_DIR / "clawhub-cache.json"
 CACHE_MAX_AGE = 86400  # 24 hours in seconds
+CACHE_VERSION = "2.0.0"
 
 
 def is_cache_fresh(cache_data: dict) -> bool:
@@ -28,11 +29,84 @@ def load_cache() -> dict:
     return {}
 
 
+def enrich_cache_with_complementary(cache_data: dict) -> dict:
+    """Enrich cache skills with complementary metadata.
+
+    Args:
+        cache_data: Raw cache data
+
+    Returns:
+        Enriched cache with complementary fields
+    """
+    comp_file = DATA_DIR / "complementary-skills.json"
+    if not comp_file.exists():
+        return cache_data
+
+    comp_data = load_json(comp_file)
+    if not comp_data:
+        return cache_data
+
+    # Build skill complementary mapping
+    skill_map = {}
+
+    for relationship in comp_data.get("relationships", []):
+        for comp in relationship.get("complements", []):
+            skill_slug = comp["skill_slug"]
+            if skill_slug not in skill_map:
+                skill_map[skill_slug] = {
+                    "categories": [],
+                    "priority": comp.get("priority", "MEDIUM"),
+                    "integration_type": comp.get("integration_type", ""),
+                    "complements": [],
+                    "complemented_by": []
+                }
+
+            # Add category if not already present
+            category = comp.get("category", "")
+            if category and category not in skill_map[skill_slug]["categories"]:
+                skill_map[skill_slug]["categories"].append(category)
+
+            # Add bidirectional relationship
+            base_skill = relationship.get("skill_slug", "")
+            if base_skill:
+                skill_map[skill_slug]["complements"].append(base_skill)
+
+                # Add reverse relationship
+                if base_skill not in skill_map:
+                    skill_map[base_skill] = {
+                        "categories": [],
+                        "priority": "MEDIUM",
+                        "integration_type": "",
+                        "complements": [],
+                        "complemented_by": []
+                    }
+                if skill_slug not in skill_map[base_skill]["complemented_by"]:
+                    skill_map[base_skill]["complemented_by"].append(skill_slug)
+
+    # Enrich skills in cache
+    enriched_count = 0
+    for skill in cache_data.get("skills", []):
+        if skill["slug"] in skill_map:
+            skill["complementary"] = skill_map[skill["slug"]]
+            enriched_count += 1
+
+    # Add metadata
+    cache_data["version"] = CACHE_VERSION
+    cache_data["metadata"] = {
+        "total_skills": len(cache_data.get("skills", [])),
+        "complementary_enriched": enriched_count,
+        "last_enrichment": time.strftime("%Y-%m-%dT%H:%M:%SZ")
+    }
+
+    return cache_data
+
+
 def save_cache(data: dict) -> dict:
-    """Save cache file with timestamp. Returns updated data."""
-    data["timestamp"] = time.time()
-    save_json(CACHE_FILE, data)
-    return data
+    """Save cache file with enrichment and timestamp. Returns updated data."""
+    enriched = enrich_cache_with_complementary(data)
+    enriched["timestamp"] = time.time()
+    save_json(CACHE_FILE, enriched)
+    return enriched
 
 
 def search_cache(cache_data: dict, query: str, limit: int) -> list[dict]:

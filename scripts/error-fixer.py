@@ -2,7 +2,6 @@
 """Error diagnosis and auto-fix CLI for OpenClaw."""
 from __future__ import annotations
 
-import json
 import sys
 from pathlib import Path
 
@@ -12,11 +11,12 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 import click
 from rich.console import Console
 from rich.panel import Panel
-from rich.table import Table
 
 from scripts.lib.error_database import ErrorDatabase
 from scripts.lib.error_parser import ErrorParser
 from scripts.lib.fix_engine import FixEngine
+from scripts.lib.notification_hooks import NotificationHooks
+from scripts.lib.error_fixer_display import display_suggestions, display_integration_suggestions
 
 console = Console()
 
@@ -49,33 +49,23 @@ def main(input_file, error_code, auto_fix, dry_run, json_output, category):
     if category:
         patterns = db.get_by_category(category)
         if json_output:
-            data = [{"code": p.code, "title": p.title, "severity": p.severity} for p in patterns]
-            console.print_json(data=data)
+            console.print_json(data=[{"code": p.code, "title": p.title, "severity": p.severity} for p in patterns])
         else:
             console.print(f"\n[bold]Errors in category: {category}[/bold]\n")
             for p in patterns:
                 console.print(f"{severity_badge(p.severity)} {p.code}: {p.title}")
         return
 
-    # Parse errors
+    # Parse errors from source
     errors = []
     if error_code:
-        # Direct code lookup
         patterns = db.match_exact_code(error_code)
         if not patterns:
             console.print(f"[red]Error code not found: {error_code}[/red]")
             sys.exit(1)
         errors = [(error_code, error_code, patterns)]
-    elif input_file:
-        # Parse log file
-        parsed = parser.parse_log_file(Path(input_file))
-        for pe in parsed:
-            patterns = db.diagnose(pe.error_message, pe.error_code)
-            if patterns:
-                errors.append((pe.error_message, pe.error_code, patterns))
     else:
-        # Read from stdin
-        parsed = parser.parse_stdin()
+        parsed = parser.parse_log_file(Path(input_file)) if input_file else parser.parse_stdin()
         for pe in parsed:
             patterns = db.diagnose(pe.error_message, pe.error_code)
             if patterns:
@@ -147,6 +137,11 @@ def main(input_file, error_code, auto_fix, dry_run, json_output, category):
     # Auto-fix execution
     if auto_fix and auto_fixable > 0:
         console.print("[bold yellow]Executing auto-fixes...[/bold yellow]\n")
+        all_diag_suggestions = []
+        all_recovery_suggestions = []
+        all_notification_suggestions = []
+        notification_hooks = NotificationHooks()
+
         for msg, code, patterns in errors:
             for p in patterns:
                 if p.fix_recipe_id and fix_engine.can_auto_fix(p.fix_recipe_id):
@@ -157,6 +152,43 @@ def main(input_file, error_code, auto_fix, dry_run, json_output, category):
                         console.print(f"[red]✗[/red] {result.message}")
                     for action in result.actions_taken:
                         console.print(f"  {action}")
+
+                    # Collect suggestions
+                    if result.diagnostic_suggestions:
+                        all_diag_suggestions.extend(result.diagnostic_suggestions)
+                    if result.recovery_suggestions:
+                        all_recovery_suggestions.extend(result.recovery_suggestions)
+
+                    # Check notification triggers
+                    notif_context = {
+                        "unresolved": not result.success,
+                        "critical_error": "critical" in p.code.lower(),
+                        "error_code": p.code,
+                        "skill_suggestions_count": len(result.diagnostic_suggestions) + len(result.recovery_suggestions),
+                        "resolution_unclear": len(result.needs_manual) > 0
+                    }
+                    notif_sug = notification_hooks.check_triggers(notif_context)
+                    if notif_sug:
+                        all_notification_suggestions.extend(notif_sug)
+
+        # Display collected suggestions
+        _show_all_suggestions(
+            console, all_diag_suggestions,
+            all_recovery_suggestions, all_notification_suggestions
+        )
+
+
+def _show_all_suggestions(console, diag, recovery, notif):
+    """Display all suggestion panels."""
+    if diag:
+        display_suggestions(console, diag, "Diagnostic Suggestions",
+                            "Consider these skills for deeper diagnostics:", "cyan")
+    if recovery:
+        display_suggestions(console, recovery, "Recovery Automation Suggestions",
+                            "Consider these skills to improve recovery:", "yellow")
+    if notif:
+        display_integration_suggestions(console, notif, "Integration Suggestions",
+                                        "Consider these integrations:", "blue")
 
 
 if __name__ == "__main__":
