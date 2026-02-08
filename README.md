@@ -8,6 +8,8 @@ A curated collection of skills for [OpenClaw](https://github.com/openclaw/opencl
 |-------|-------------|---------|
 | [openclaw-whisperer](./openclaw-whisperer/) | Diagnostic, error-fixing, and skill recommendation tool for OpenClaw | `npx clawhub@latest install openclaw-whisperer` |
 | [skill-hub](./skill-hub/) | Skill discovery, security vetting, and installation hub (3000+ curated skills) | `npx clawhub@latest install skill-hub` |
+| [skill-vetting](./skill-vetting/) | Security and utility assessment for ClawHub skills before installation | `npx clawhub@latest install skill-vetting` |
+| [openclaw-backup](./openclaw-backup/) | Backup and restore OpenClaw data with scheduling and rotation | `npx clawhub@latest install openclaw-backup` |
 
 ## openclaw-whisperer
 
@@ -32,6 +34,27 @@ python3 skill-hub/scripts/skill-hub-status.py                        # Status da
 ```
 
 See [skill-hub/SKILL.md](./skill-hub/SKILL.md) for full documentation.
+
+## skill-vetting
+
+Evaluate ClawHub skills for security risks and practical utility before installing. Automated scanner detects eval/exec, obfuscation, prompt injection, undocumented network calls. Includes decision matrix and manual review workflow.
+
+```bash
+python3 skill-vetting/scripts/scan.py /tmp/skill-inspect  # Scan downloaded skill
+```
+
+See [skill-vetting/SKILL.md](./skill-vetting/SKILL.md) for full documentation.
+
+## openclaw-backup
+
+Backup and restore OpenClaw configuration, credentials, and workspace. Daily cron scheduling, automatic 7-day rotation, selective archiving with proper exclusions.
+
+```bash
+./openclaw-backup/scripts/backup.sh              # Create backup
+./openclaw-backup/scripts/backup.sh ~/my-backups  # Custom backup dir
+```
+
+See [openclaw-backup/SKILL.md](./openclaw-backup/SKILL.md) for full documentation.
 
 ## Requirements
 
