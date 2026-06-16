@@ -8,8 +8,8 @@ A curated collection of skills for [OpenClaw](https://github.com/openclaw/opencl
 |-------|-------------|---------|
 | [openclaw-whisperer](./openclaw-whisperer/) | Diagnostic, error-fixing, and skill recommendation tool for OpenClaw | `npx clawhub@latest install openclaw-whisperer` |
 | [skill-hub](./skill-hub/) | Skill discovery, security vetting, and installation hub (3000+ curated skills) | `npx clawhub@latest install skill-hub` |
-| [skill-vetting](./skill-vetting/) | Security and utility assessment for ClawHub skills before installation | `npx clawhub@latest install skill-vetting` |
-| [openclaw-backup](./openclaw-backup/) | Backup and restore OpenClaw data with scheduling and rotation | `npx clawhub@latest install openclaw-backup` |
+| [skill-vetting](./skill-vetting/) | Security and utility assessment for ClawHub skills before installation | `npx clawhub@latest install phenixstar-skill-vetting` |
+| [openclaw-backup](./openclaw-backup/) | Backup and restore OpenClaw data with scheduling and rotation | `npx clawhub@latest install phenixstar-openclaw-backup` |
 
 ## openclaw-whisperer
 
